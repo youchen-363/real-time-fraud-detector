@@ -1,6 +1,17 @@
-
-def ml() -> bool:
+import joblib 
+from xgboost import XGBClassifier
+from sklearn.ensemble import RandomForestClassifier
+    
+def load_random_forest() -> RandomForestClassifier:
     """ 
-    Detect fraud with trained ML model 
+    Load random forest classifier 
     """
-    return False
+    return joblib.load("./model/random_forest.joblib")
+
+def load_xgboost() -> XGBClassifier:
+    """ 
+    Load XGBoost classifier
+    """
+    model = XGBClassifier()
+    model.load_model("./model/xgboost.json")
+    return model

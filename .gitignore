@@ -223,4 +223,8 @@ __marimo__/
 *.joblib
 *.pkl
 *.h5
-*.json
+
+*.txt
+*.Identifier
+data/
+benchmark/
