@@ -9,6 +9,8 @@ import numpy as np
 import time 
 from dotenv import load_dotenv
 import os 
+import warnings
+warnings.filterwarnings('ignore')
 
 load_dotenv()
 TPS = int(os.getenv("TPS"))
@@ -21,6 +23,7 @@ conf = {
 }
 
 model = load_xgboost()
+# model = load_random_forest()
 
 def detect_fraud(tx: dict) -> bool:
     """ 
@@ -29,17 +32,23 @@ def detect_fraud(tx: dict) -> bool:
     to double check the transaction
     return False if not a fraud
     """
+    """
     if is_type_in(tx):
         return False
+    """
     # return check_rules(tx)
-    if not check_rules(tx):
-        """ 
-        After rule based, we found that a transaction is not a fraud.
-        So we pass it into ML to make sure we don't skip a fraud.
-        """
-        ml_txn = np.array([[val for key, val in tx.items() if key not in ('nameOrig', 'nameDest', 'isFraud', 'recv_time')]])
-        # 3. Predict!
-        return model.predict(ml_txn)[0] 
+    # if not check_rules(tx):
+    #     """ 
+    #     After rule based, we found that a transaction is not a fraud.
+    #     So we pass it into ML to make sure we don't skip a fraud.
+    #     """
+    #     ml_txn = np.array([[val for key, val in tx.items() if key not in ('nameOrig', 'nameDest', 'isFraud', 'recv_time')]])
+    #     # 3. Predict!
+    #     return model.predict(ml_txn)[0] 
+    
+    ml_txn = np.array([[val for key, val in tx.items() if key not in ('nameOrig', 'nameDest', 'isFraud', 'recv_time')]])
+    # 3. Predict!
+    return model.predict(ml_txn)[0] 
     return True
 
 def main():
@@ -54,7 +63,7 @@ def main():
         while True:
             # constantly pulling new data from Kafka Server
             msg = consumer.poll(0.01)
-            # start_time = time.perf_counter()
+            start_time = time.perf_counter()
             if msg is None:
                 continue 
             if msg.error() is not None:
@@ -66,8 +75,8 @@ def main():
             # print(transaction)
             is_fraud = detect_fraud(transaction)
             end_time = time.perf_counter()
-            duration.append(end_time - transaction['recv_time'])
-            # duration.append(end_time - start_time)
+            # duration.append(end_time - transaction['recv_time'])
+            duration.append(end_time - start_time)
             if not is_fraud: 
                 add_transaction(IN_OUT[transaction['type_CASH_IN']] + transaction['nameOrig'], transaction)
                 if transaction['isFraud'] == 0:

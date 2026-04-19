@@ -1,7 +1,6 @@
 from confluent_kafka import Producer 
 import time, json
 import pyarrow.parquet as pq
-import sys 
 from dotenv import load_dotenv
 import os  
 

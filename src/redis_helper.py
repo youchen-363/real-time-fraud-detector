@@ -1,4 +1,3 @@
-# import redis.asyncio as rd
 import redis
 from src.data_processing import pack_transaction, IN_OUT
 import time

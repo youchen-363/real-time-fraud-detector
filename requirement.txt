@@ -1,0 +1,12 @@
+pandas
+scikit-learn
+imbalanced-learn
+joblib
+matplotlib
+xgboost
+numpy
+confluent-kafka
+python-dotenv
+pyarrow
+redis
+seaborn
