@@ -1,6 +1,6 @@
 from confluent_kafka import Consumer
 import json
-from src.producer import topic
+from src.producer import TOPIC
 from src.fraud_rules import is_type_in, check_rules
 from src.redis_helper import add_transaction
 from src.ml_helper import load_random_forest, load_xgboost
@@ -54,7 +54,7 @@ def detect_fraud(tx: dict) -> bool:
 def main():
     duration = []
     consumer = Consumer(conf)
-    consumer.subscribe([topic])
+    consumer.subscribe([TOPIC])
     count_TN = 0
     count_TP = 0
     count_FP = 0

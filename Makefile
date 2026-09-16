@@ -6,6 +6,9 @@ all:
 	make down-all
 	make up-all
 
+jupyter:
+	PYTHONPATH=$(PWD) jupyter lab
+
 up-all:
 	cd docker && docker-compose up -d
 

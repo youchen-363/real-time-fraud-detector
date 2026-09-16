@@ -33,32 +33,6 @@ services:
     networks:
       - fraud_network
 
-  # minio:
-  #   image: minio/minio:latest
-  #   container_name: fraud_minio
-  #   ports:
-  #     - "9000:9000"
-  #     - "9001:9001"
-  #   env_file:
-  #     - ../.env
-  #   command: server /data --console-address ":9001"
-  #   volumes:
-  #     - minio_data:/data
-  #   networks:
-  #     - fraud_network
-
-  # grafana:
-  #   image: grafana/grafana:latest
-  #   container_name: fraud_grafana
-  #   ports:
-  #     - "3000:3000"
-  #   env_file:
-  #     - ../.env
-  #   volumes:
-  #     - grafana_data:/var/lib/grafana
-  #   networks:
-  #     - fraud_network
-
 networks:
   fraud_network:
     driver: bridge
@@ -66,5 +40,3 @@ networks:
 volumes:
   kafka_data:
   redis_data:
-  minio_data:
-  grafana_data:

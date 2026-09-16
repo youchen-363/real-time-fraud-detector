@@ -2,27 +2,20 @@ from confluent_kafka import Producer
 import time, json
 import pyarrow.parquet as pq
 from dotenv import load_dotenv
+from pathlib import Path
 import os  
 
 load_dotenv()
 FILE_NAME = os.getenv("FILE_NAME")
 TARGET_TPS = int(os.getenv("TPS"))
-
-conf = {
-    "bootstrap.servers": "localhost:9092",
-    "client.id": "paysim-data-generator"
-}
-
-topic = "raw-transactions"
-
-# try:
-#     TARGET_TPS = int(sys.argv[-1])
-# except (IndexError, ValueError):
-#     TARGET_TPS = 100  # Default fallback
-
-TEST_DURATION = 60
+TEST_DURATION = int(os.getenv("DURATION"))
 MAX_MESSAGES = TARGET_TPS * TEST_DURATION
 
+CONFIG_PATH = Path("./config/kafka.json")
+with open(CONFIG_PATH, "r") as config_file:
+    conf = json.load(config_file)
+
+TOPIC = "raw-transactions"
 SLEEP_TIME = 1.0 / TARGET_TPS
     
 def delivery_report(err, msg):
@@ -32,15 +25,12 @@ def delivery_report(err, msg):
         print('Message delivery failed: {}'.format(err))
     # else:
     #     print('Message delivered to {} [{}]'.format(msg.topic(), msg.partition()))
-            
-def main():       
-    count = 0
-    producer = Producer(conf)
-    parquet_file = pq.ParquetFile(FILE_NAME)
+
+def produce_transactions(parquet_file: pq.ParquetFile, producer: Producer) -> None:
+    # Read the file in chunks of 5,000 rows at a time
+    # This guarantees PC will never run out of RAM
     start_time = time.time()
-    
-    # 2. Read the file in chunks of 5,000 rows at a time
-    # This guarantees your PC will never run out of RAM!
+    count = 0
     for batch in parquet_file.iter_batches(batch_size=5000):
         
         # Convert this specific chunk into a list of dictionaries
@@ -51,28 +41,14 @@ def main():
             # it converts cleanly to a JSON string
             row["recv_time"] = time.perf_counter()
             data = json.dumps(row)
-            # print(data)
             routing_key = str(row["nameOrig"])
-            # print("\n\n", routing_key)
             
-            while True:
-                try:
-                    producer.produce(
-                        topic=topic,
-                        key=routing_key,
-                        value=data,
-                        callback=delivery_report
-                    )
-                    break # Success! Break the while loop
-                except BufferError:
-                    # Queue is full! Wait 0.1 seconds and try again
-                    producer.poll(0.1)
+            produce_transaction(producer, data, routing_key)
             count += 1
             
             if count >= MAX_MESSAGES:
                 print(f"\nTarget volume of {MAX_MESSAGES} reached. Stopping Producer.")
-                producer.flush()
-                return  # Instantly exits the main() function!
+                return
             
             # --- ADD THE PACER LOGIC AT THE END OF THE LOOP ---
             if TARGET_TPS > 0:
@@ -84,12 +60,29 @@ def main():
                 if sleep_time > 0:
                     time.sleep(sleep_time)
                 
-            # --- VISUAL VERIFICATION FOR YOUR DEMO ---
             if count % TARGET_TPS == 0:
                 elapsed = time.time() - start_time
                 real_tps = count / elapsed
                 print(f"Sent {count:,} transactions... Current Speed: {real_tps:.0f} TPS")
-                
+
+def produce_transaction(producer, data, routing_key):
+    while True:
+        try:
+            producer.produce(
+                        topic=TOPIC,
+                        key=routing_key,
+                        value=data,
+                        callback=delivery_report
+                    )
+            break
+        except BufferError:
+                    # Queue is full! Wait 0.1 seconds and try again
+            producer.poll(0.1)
+            
+def main():       
+    producer = Producer(conf)
+    parquet_file = pq.ParquetFile(FILE_NAME)    
+    produce_transactions(parquet_file, producer)
     producer.flush()
 
 if __name__ == "__main__":

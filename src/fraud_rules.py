@@ -26,7 +26,7 @@ def small_to_large(recv_time: float, out_trans: list[tuple[bytes, float]]) -> bo
     threshold_small_txn = 3
     threshold_small_amt = 100
     threshold_large_amt = 10000
-    cutoff_time = recv_time - 600 # 10mins -> 600seconds
+    cutoff_time = recv_time - 600 # 600s == 10mins
     start_idx = filter_transactions_by_time(out_trans, cutoff_time)
     count_small = 0
     for i in range(start_idx, len(out_trans)):
@@ -76,9 +76,9 @@ def pump_and_dump(in_trans: list[dict], out_trans: list[dict]) -> bool:
     
     user, in & out, amount
     check OUT
-    return True if is pump and dump 
+    return True if it is pump and dump 
     """
-    threshold_pump = 50000    
+    threshold_pump = 50000
     sum_in = sum(unpack_transaction(trans[0])[0] for trans in in_trans)
     # check the current transaction too 
     sum_out = sum(unpack_transaction(trans[0])[0] for trans in out_trans)

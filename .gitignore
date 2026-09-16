@@ -228,3 +228,6 @@ __marimo__/
 *.Identifier
 data/
 benchmark/
+
+# Configuration files 
+config/
