@@ -72,7 +72,7 @@ def main():
             # message OK without error 
             msg_value = msg.value().decode('utf-8')
             transaction = json.loads(msg_value)
-            # print(transaction)
+            print(transaction)
             is_fraud = detect_fraud(transaction)
             end_time = time.perf_counter()
             # duration.append(end_time - transaction['recv_time'])
