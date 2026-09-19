@@ -6,12 +6,12 @@ def load_random_forest() -> RandomForestClassifier:
     """ 
     Load random forest classifier 
     """
-    return joblib.load("./model/random_forest.joblib")
+    return joblib.load("model/random_forest.joblib")
 
 def load_xgboost() -> XGBClassifier:
     """ 
     Load XGBoost classifier
     """
     model = XGBClassifier()
-    model.load_model("./model/xgboost.json")
+    model.load_model("model/xgboost.bin")
     return model
